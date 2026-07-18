@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
-  ArrowUp,
   Building2,
   ChevronRight,
   Folder,
@@ -81,10 +80,8 @@ export function DataRoomHeader({
   const currentFolder = folderPath.at(-1) ?? null;
   const parentFolderId = currentFolder?.parentId ?? null;
   const canGoUp = Boolean(currentFolder);
+  const backHref = canGoUp ? getFolderHref(dataRoomId, parentFolderId) : "/";
   const title = currentFolder?.name ?? dataRoomName;
-  const subtitle = currentFolder
-    ? `Browsing ${dataRoomName}`
-    : "Organize folders and due diligence documents.";
 
   return (
     <header className="mb-7 border-b bg-background pb-5">
@@ -148,6 +145,17 @@ export function DataRoomHeader({
 
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
+          <Link
+            href={backHref}
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "icon-lg" }),
+              "shrink-0 text-muted-foreground hover:text-foreground",
+            )}
+            aria-label={canGoUp ? "Go back" : "Back to data rooms"}
+          >
+            <ArrowLeft />
+          </Link>
+
           <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-muted/70">
             {currentFolder ? (
               <Folder className="size-4.5 fill-current text-muted-foreground" />
@@ -157,29 +165,13 @@ export function DataRoomHeader({
           </div>
 
           <div className="min-w-0">
-            <p className="mb-0.5 text-xs font-medium text-muted-foreground">
-              {currentFolder ? "Folder" : "Data room"}
-            </p>
-
             <h1 className="truncate text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
               {title}
             </h1>
-
-            <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {canGoUp ? (
-            <Link
-              href={getFolderHref(dataRoomId, parentFolderId)}
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-            >
-              <ArrowUp />
-              Up one level
-            </Link>
-          ) : null}
-
           <CreateFolderDialog
             dataRoomId={dataRoomId}
             parentId={currentFolderId}
