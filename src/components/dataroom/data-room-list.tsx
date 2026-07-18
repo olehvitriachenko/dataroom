@@ -2,8 +2,11 @@
 
 import { FolderOpen } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { toast } from "sonner";
 
 import { db } from "@/db/database";
+import { moveFolderToParent } from "@/db/folder-actions";
+import type { DataRoom } from "@/types/entities";
 import CardDataRoom from "./dataroom-card";
 // import { CreateDataRoomDialog } from "@/components/dataroom/create-dataroom-dialog";
 
@@ -12,6 +15,24 @@ export function DataRoomList() {
     () => db.dataRooms.orderBy("createdAt").reverse().toArray(),
     [],
   );
+
+  async function handleMoveFolderToRoom(folderId: string, room: DataRoom) {
+    try {
+      const didMove = await moveFolderToParent({
+        folderId,
+        targetDataRoomId: room.id,
+        targetParentId: null,
+      });
+
+      if (didMove) {
+        toast.success(`Folder moved to ${room.name}.`);
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not move the folder.",
+      );
+    }
+  }
 
   if (dataRooms === undefined) {
     return (
@@ -45,7 +66,11 @@ export function DataRoomList() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {dataRooms.map((room) => (
-        <CardDataRoom key={room.id} room={room} />
+        <CardDataRoom
+          key={room.id}
+          room={room}
+          onMoveFolderToRoom={handleMoveFolderToRoom}
+        />
       ))}
     </div>
   );
