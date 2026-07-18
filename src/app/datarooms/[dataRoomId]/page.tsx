@@ -7,6 +7,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 import { db } from "@/db/database";
 import { buttonVariants } from "@/components/ui/button";
+import { DataRoomHeader } from "@/components/dataroom/data-room-header";
 import { DataRoomExplorer } from "@/components/dataroom/data-room-explorer";
 import { cn } from "@/lib/utils";
 
@@ -57,27 +58,7 @@ export default function DataRoomPage() {
   return (
     <main className="min-h-screen bg-muted/20">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <Link
-          href="/"
-          className={cn(buttonVariants({ variant: "ghost" }), "mb-6")}
-        >
-          <ArrowLeft />
-          Data rooms
-        </Link>
-
-        <header className="mb-8">
-          <p className="mb-2 text-sm font-medium text-muted-foreground">
-            Data room
-          </p>
-
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {dataRoom.name}
-          </h1>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            Organize folders and due diligence documents.
-          </p>
-        </header>
+        <DataRoomHeader dataRoomId={dataRoomId} dataRoomName={dataRoom.name} />
 
         <DataRoomExplorer dataRoomId={dataRoomId} />
       </div>

@@ -93,7 +93,7 @@ export function CreateFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button />}>
+      <DialogTrigger render={<Button size="sm" />}>
         <FolderPlus />
         New folder
       </DialogTrigger>

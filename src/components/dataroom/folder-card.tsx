@@ -14,7 +14,7 @@ export default function FolderCard({ folder, dataRoomId }: FolderCardProps) {
   return (
     <Link
       href={`/datarooms/${dataRoomId}?folderId=${folder.id}`}
-      className="group flex items-center gap-4 rounded-xl border bg-card p4 shadow-sm transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
+      className="group flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md"
     >
       <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted">
         <Folder className="size-5 fill-current text-muted-foreground" />

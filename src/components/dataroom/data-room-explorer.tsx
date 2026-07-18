@@ -6,7 +6,6 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 import { db } from "@/db/database";
 import FolderCard from "@/components/dataroom/folder-card";
-import { CreateFolderDialog } from "@/components/dataroom/create-folder-dialog";
 
 interface DataRoomExplorerProps {
   dataRoomId: string;
@@ -40,21 +39,6 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
   }
   return (
     <section>
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">Documents</h2>
-
-          <p className="text-sm text-muted-foreground">
-            Organize folders and PDF documents.
-          </p>
-        </div>
-
-        <CreateFolderDialog
-          dataRoomId={dataRoomId}
-          parentId={currentFolderId}
-        />
-      </div>
-
       {folders.length === 0 ? (
         <div className="flex min-h-80 flex-col items-center justify-center rounded-xl border border-dashed bg-background p-8 text-center">
           <div className="mb-4 rounded-full border bg-muted p-4">

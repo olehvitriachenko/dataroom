@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { Building2, FolderOpen } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 
 import { db } from "@/db/database";
