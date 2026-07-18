@@ -76,3 +76,7 @@ export async function moveFileToFolder({
     return true;
   });
 }
+
+export async function deleteFile(fileId: string): Promise<void> {
+  await db.files.delete(fileId);
+}

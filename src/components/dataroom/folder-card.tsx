@@ -143,8 +143,6 @@ export function FolderCard({
 
           <div className="pointer-events-none relative min-w-0">
             <h3 className="truncate font-medium">{folder.name}</h3>
-
-            <p className="mt-1 text-xs text-muted-foreground">Folder</p>
           </div>
 
           <div

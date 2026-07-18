@@ -132,16 +132,6 @@ export function DataRoomHeader({
           </BreadcrumbList>
         </Breadcrumb>
 
-        <Link
-          href="/"
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "w-fit text-muted-foreground",
-          )}
-        >
-          <ArrowLeft />
-          All data rooms
-        </Link>
       </div>
 
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">

@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Data Room MVP
 
-## Getting Started
+A Google Drive-inspired virtual data room for organizing due diligence PDFs.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js App Router
+- React + TypeScript
+- Tailwind CSS
+- shadcn/ui on Base UI
+- Dexie + IndexedDB
+- react-pdf for in-app PDF preview
+- lucide-react icons
+- sonner toasts
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Useful checks:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm lint
+pnpm build
+```
 
-## Learn More
+## Features
 
-To learn more about Next.js, take a look at the following resources:
+- Create, rename, and delete data rooms.
+- Create nested folders.
+- Browse folders with breadcrumbs and back navigation.
+- Rename and delete folders.
+- Deleting a folder removes nested folders and files.
+- Upload PDF files only.
+- View PDFs in a responsive in-app preview.
+- Rename and delete PDFs.
+- Drag folders between folders and data rooms.
+- Drag PDFs between folders and data rooms.
+- Drag external PDFs into the current folder or onto a target folder/data room.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Design Decisions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Data is stored locally in IndexedDB via Dexie. This keeps the MVP fully end-to-end without a backend while preserving realistic data modeling for data rooms, folders, and files.
 
-## Deploy on Vercel
+The schema separates `dataRooms`, `folders`, and `files`. Folders use `parentId` for nesting. Files use `folderId` for placement and store the PDF `Blob` locally.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The UI uses cards, breadcrumbs, context menus, and dropdown menus to keep the workflows close to familiar file managers. Desktop users can right-click cards; mobile users always have a visible three-dots menu.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+PDF preview uses `react-pdf` in a client-only dynamic component because `pdf.js` depends on browser APIs. The preview measures its container with `ResizeObserver` and passes a responsive width to each page.
+
+## Edge Cases
+
+- Empty folder and empty data room states are handled.
+- Non-PDF uploads are rejected with a toast.
+- Duplicate folder names are blocked within the same parent.
+- Moving a folder into itself or its descendant is blocked.
+- No-op drag/drop moves do not show success messages.
+- File and folder drag payloads use separate custom MIME types to avoid cross-handling bugs.
+
+## Notes
+
+This is a frontend-only MVP. A production version would move file storage to blob storage, add auth, server-side authorization checks, and search/indexing.
