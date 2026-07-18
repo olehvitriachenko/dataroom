@@ -6,15 +6,10 @@ export function setDraggedFolderId(
 ) {
   dataTransfer.effectAllowed = "move";
   dataTransfer.setData(FOLDER_DRAG_TYPE, folderId);
-  dataTransfer.setData("text/plain", folderId);
 }
 
 export function getDraggedFolderId(dataTransfer: DataTransfer) {
-  return (
-    dataTransfer.getData(FOLDER_DRAG_TYPE) ||
-    dataTransfer.getData("text/plain") ||
-    null
-  );
+  return dataTransfer.getData(FOLDER_DRAG_TYPE) || null;
 }
 
 export function hasDraggedFolder(dataTransfer: DataTransfer) {

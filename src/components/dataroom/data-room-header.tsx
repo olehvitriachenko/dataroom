@@ -21,6 +21,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { CreateFolderDialog } from "@/components/dataroom/create-folder-dialog";
+import { UploadPdfButton } from "@/components/dataroom/upload-pdf-button";
 import { cn } from "@/lib/utils";
 import type { Folder as FolderEntity } from "@/types/entities";
 
@@ -172,6 +173,8 @@ export function DataRoomHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <UploadPdfButton dataRoomId={dataRoomId} folderId={currentFolderId} />
+
           <CreateFolderDialog
             dataRoomId={dataRoomId}
             parentId={currentFolderId}

@@ -5,6 +5,11 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { toast } from "sonner";
 
 import { db } from "@/db/database";
+import {
+  isPdfFile,
+  moveFileToFolder,
+  uploadPdfFiles,
+} from "@/db/file-actions";
 import { moveFolderToParent } from "@/db/folder-actions";
 import type { DataRoom } from "@/types/entities";
 import CardDataRoom from "./dataroom-card";
@@ -31,6 +36,49 @@ export function DataRoomList() {
       toast.error(
         error instanceof Error ? error.message : "Could not move the folder.",
       );
+    }
+  }
+
+  async function handleMoveFileToRoom(fileId: string, room: DataRoom) {
+    try {
+      const didMove = await moveFileToFolder({
+        fileId,
+        targetDataRoomId: room.id,
+        targetFolderId: null,
+      });
+
+      if (didMove) {
+        toast.success(`PDF moved to ${room.name}.`);
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not move the PDF.",
+      );
+    }
+  }
+
+  async function handleUploadFilesToRoom(files: File[], room: DataRoom) {
+    try {
+      const uploadedCount = await uploadPdfFiles({
+        dataRoomId: room.id,
+        folderId: null,
+        files,
+      });
+      const rejectedCount = files.filter((file) => !isPdfFile(file)).length;
+
+      if (uploadedCount > 0) {
+        toast.success(
+          uploadedCount === 1
+            ? `PDF uploaded to ${room.name}.`
+            : `${uploadedCount} PDFs uploaded to ${room.name}.`,
+        );
+      }
+
+      if (rejectedCount > 0) {
+        toast.error("Only PDF files are supported.");
+      }
+    } catch {
+      toast.error("Could not upload PDF files.");
     }
   }
 
@@ -70,6 +118,8 @@ export function DataRoomList() {
           key={room.id}
           room={room}
           onMoveFolderToRoom={handleMoveFolderToRoom}
+          onMoveFileToRoom={handleMoveFileToRoom}
+          onUploadFilesToRoom={handleUploadFilesToRoom}
         />
       ))}
     </div>

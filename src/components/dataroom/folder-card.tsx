@@ -27,18 +27,27 @@ import {
   hasDraggedFolder,
   setDraggedFolderId,
 } from "@/lib/folder-drag";
+import {
+  getDraggedFileId,
+  hasDraggedDataRoomFile,
+  hasNativeFiles,
+} from "@/lib/file-drag";
 import { cn } from "@/lib/utils";
 
 interface FolderCardProps {
   folder: Folder;
   onOpen: (folder: Folder) => void;
   onMoveToFolder?: (folderId: string, targetFolder: Folder) => void;
+  onMoveFileToFolder?: (fileId: string, targetFolder: Folder) => void;
+  onUploadFilesToFolder?: (files: File[], targetFolder: Folder) => void;
 }
 
 export function FolderCard({
   folder,
   onOpen,
   onMoveToFolder,
+  onMoveFileToFolder,
+  onUploadFilesToFolder,
 }: FolderCardProps) {
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -61,7 +70,12 @@ export function FolderCard({
   }
 
   function handleDragOver(event: DragEvent<HTMLElement>) {
-    if (!onMoveToFolder || !hasDraggedFolder(event.dataTransfer)) {
+    const acceptsFolder = onMoveToFolder && hasDraggedFolder(event.dataTransfer);
+    const acceptsFile =
+      onMoveFileToFolder && hasDraggedDataRoomFile(event.dataTransfer);
+    const acceptsUpload = onUploadFilesToFolder && hasNativeFiles(event.dataTransfer);
+
+    if (!acceptsFolder && !acceptsFile && !acceptsUpload) {
       return;
     }
 
@@ -71,17 +85,24 @@ export function FolderCard({
   }
 
   function handleDrop(event: DragEvent<HTMLElement>) {
-    if (!onMoveToFolder) {
-      return;
-    }
-
     event.preventDefault();
     event.stopPropagation();
     setIsDraggingOver(false);
 
     const draggedFolderId = getDraggedFolderId(event.dataTransfer);
+    const draggedFileId = getDraggedFileId(event.dataTransfer);
 
-    if (!draggedFolderId || draggedFolderId === folder.id) {
+    if (event.dataTransfer.files.length > 0 && onUploadFilesToFolder) {
+      onUploadFilesToFolder(Array.from(event.dataTransfer.files), folder);
+      return;
+    }
+
+    if (draggedFileId && onMoveFileToFolder) {
+      onMoveFileToFolder(draggedFileId, folder);
+      return;
+    }
+
+    if (!draggedFolderId || draggedFolderId === folder.id || !onMoveToFolder) {
       return;
     }
 

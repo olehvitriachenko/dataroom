@@ -23,17 +23,26 @@ import {
 } from "./data-room-actions-menu";
 import { DeleteDataRoomDialog } from "./delete-data-room-dialog";
 import { RenameDataRoomDialog } from "./rename-data-room-dialog";
+import {
+  getDraggedFileId,
+  hasDraggedDataRoomFile,
+  hasNativeFiles,
+} from "@/lib/file-drag";
 import { getDraggedFolderId, hasDraggedFolder } from "@/lib/folder-drag";
 import { cn } from "@/lib/utils";
 
 interface CardDataRoomProps {
   room: DataRoom;
   onMoveFolderToRoom?: (folderId: string, room: DataRoom) => void;
+  onMoveFileToRoom?: (fileId: string, room: DataRoom) => void;
+  onUploadFilesToRoom?: (files: File[], room: DataRoom) => void;
 }
 
 export default function CardDataRoom({
   room,
   onMoveFolderToRoom,
+  onMoveFileToRoom,
+  onUploadFilesToRoom,
 }: CardDataRoomProps) {
   const router = useRouter();
   const [isRenameOpen, setIsRenameOpen] = useState(false);
@@ -53,7 +62,13 @@ export default function CardDataRoom({
   }
 
   function handleDragOver(event: DragEvent<HTMLElement>) {
-    if (!onMoveFolderToRoom || !hasDraggedFolder(event.dataTransfer)) {
+    const acceptsFolder =
+      onMoveFolderToRoom && hasDraggedFolder(event.dataTransfer);
+    const acceptsFile =
+      onMoveFileToRoom && hasDraggedDataRoomFile(event.dataTransfer);
+    const acceptsUpload = onUploadFilesToRoom && hasNativeFiles(event.dataTransfer);
+
+    if (!acceptsFolder && !acceptsFile && !acceptsUpload) {
       return;
     }
 
@@ -63,17 +78,24 @@ export default function CardDataRoom({
   }
 
   function handleDrop(event: DragEvent<HTMLElement>) {
-    if (!onMoveFolderToRoom) {
-      return;
-    }
-
     event.preventDefault();
     event.stopPropagation();
     setIsDraggingOver(false);
 
     const draggedFolderId = getDraggedFolderId(event.dataTransfer);
+    const draggedFileId = getDraggedFileId(event.dataTransfer);
 
-    if (!draggedFolderId) {
+    if (event.dataTransfer.files.length > 0 && onUploadFilesToRoom) {
+      onUploadFilesToRoom(Array.from(event.dataTransfer.files), room);
+      return;
+    }
+
+    if (draggedFileId && onMoveFileToRoom) {
+      onMoveFileToRoom(draggedFileId, room);
+      return;
+    }
+
+    if (!draggedFolderId || !onMoveFolderToRoom) {
       return;
     }
 

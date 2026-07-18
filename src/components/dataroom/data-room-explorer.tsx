@@ -7,8 +7,15 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { toast } from "sonner";
 
 import { db } from "@/db/database";
+import { isPdfFile, moveFileToFolder, uploadPdfFiles } from "@/db/file-actions";
 import { moveFolderToParent } from "@/db/folder-actions";
+import {
+  getDraggedFileId,
+  hasDraggedDataRoomFile,
+  hasNativeFiles,
+} from "@/lib/file-drag";
 import { getDraggedFolderId, hasDraggedFolder } from "@/lib/folder-drag";
+import { FileCard } from "./file-card";
 import { FolderCard } from "./folder-card";
 import type { Folder } from "@/types/entities";
 
@@ -47,6 +54,53 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
     }
   }
 
+  async function uploadFiles(files: File[], folderId: string | null) {
+    try {
+      const uploadedCount = await uploadPdfFiles({
+        dataRoomId,
+        folderId,
+        files,
+      });
+      const rejectedCount = files.filter((file) => !isPdfFile(file)).length;
+
+      if (uploadedCount > 0) {
+        toast.success(
+          uploadedCount === 1
+            ? "PDF uploaded."
+            : `${uploadedCount} PDFs uploaded.`,
+        );
+      }
+
+      if (rejectedCount > 0) {
+        toast.error("Only PDF files are supported.");
+      }
+    } catch {
+      toast.error("Could not upload PDF files.");
+    }
+  }
+
+  async function moveFile(
+    fileId: string,
+    targetFolderId: string | null,
+    successMessage: string,
+  ) {
+    try {
+      const didMove = await moveFileToFolder({
+        fileId,
+        targetDataRoomId: dataRoomId,
+        targetFolderId,
+      });
+
+      if (didMove) {
+        toast.success(successMessage);
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not move the PDF.",
+      );
+    }
+  }
+
   function handleMoveFolderToFolder(folderId: string, targetFolder: Folder) {
     void moveFolder(
       folderId,
@@ -55,8 +109,16 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
     );
   }
 
+  function handleMoveFileToFolder(fileId: string, targetFolder: Folder) {
+    void moveFile(fileId, targetFolder.id, `PDF moved to ${targetFolder.name}.`);
+  }
+
   function handleRootDragOver(event: DragEvent<HTMLElement>) {
-    if (!hasDraggedFolder(event.dataTransfer)) {
+    if (
+      !hasDraggedFolder(event.dataTransfer) &&
+      !hasDraggedDataRoomFile(event.dataTransfer) &&
+      !hasNativeFiles(event.dataTransfer)
+    ) {
       return;
     }
 
@@ -68,6 +130,17 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
     event.preventDefault();
 
     const draggedFolderId = getDraggedFolderId(event.dataTransfer);
+    const draggedFileId = getDraggedFileId(event.dataTransfer);
+
+    if (event.dataTransfer.files.length > 0) {
+      void uploadFiles(Array.from(event.dataTransfer.files), currentFolderId);
+      return;
+    }
+
+    if (draggedFileId) {
+      void moveFile(draggedFileId, currentFolderId, "PDF moved.");
+      return;
+    }
 
     if (!draggedFolderId) {
       return;
@@ -85,8 +158,17 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
         .sortBy("name"),
     [dataRoomId, currentFolderId],
   );
+  const files = useLiveQuery(
+    () =>
+      db.files
+        .where("dataRoomId")
+        .equals(dataRoomId)
+        .filter((file) => file.folderId === currentFolderId)
+        .sortBy("name"),
+    [dataRoomId, currentFolderId],
+  );
 
-  if (folders === undefined) {
+  if (folders === undefined || files === undefined) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2].map((item) => (
@@ -100,7 +182,7 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
   }
   return (
     <section onDragOver={handleRootDragOver} onDrop={handleRootDrop}>
-      {folders.length === 0 ? (
+      {folders.length === 0 && files.length === 0 ? (
         <div className="flex min-h-80 flex-col items-center justify-center rounded-xl border border-dashed bg-background p-8 text-center">
           <div className="mb-4 rounded-full border bg-muted p-4">
             <FolderOpen className="size-7 text-muted-foreground" />
@@ -109,7 +191,7 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
           <h3 className="text-lg font-semibold">This folder is empty</h3>
 
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Create a folder to start organizing your documents.
+            Create a folder or upload PDFs to start organizing your documents.
           </p>
         </div>
       ) : (
@@ -120,7 +202,14 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
               folder={folder}
               onOpen={handleOpenFolder}
               onMoveToFolder={handleMoveFolderToFolder}
+              onMoveFileToFolder={handleMoveFileToFolder}
+              onUploadFilesToFolder={(files, targetFolder) =>
+                void uploadFiles(files, targetFolder.id)
+              }
             />
+          ))}
+          {files.map((file) => (
+            <FileCard key={file.id} file={file} />
           ))}
         </div>
       )}
