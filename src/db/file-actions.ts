@@ -25,23 +25,50 @@ export async function uploadPdfFiles({
   }
 
   const now = new Date();
+  const siblingFiles = await db.files
+    .where("dataRoomId")
+    .equals(dataRoomId)
+    .filter((file) => file.folderId === folderId)
+    .toArray();
+  const usedNames = new Set(
+    siblingFiles.map((file) => file.name.toLocaleLowerCase()),
+  );
 
   await db.files.bulkAdd(
-    pdfFiles.map((file) => ({
-      id: crypto.randomUUID(),
-      dataRoomId,
-      folderId,
-      name: file.name.replace(/\.pdf$/i, ""),
-      originalName: file.name,
-      mimeType: "application/pdf" as const,
-      size: file.size,
-      blob: file,
-      createdAt: now,
-      updatedAt: now,
-    })),
+    pdfFiles.map((file) => {
+      const name = getUniqueFileName(file.name.replace(/\.pdf$/i, ""), usedNames);
+
+      usedNames.add(name.toLocaleLowerCase());
+
+      return {
+        id: crypto.randomUUID(),
+        dataRoomId,
+        folderId,
+        name,
+        originalName: file.name,
+        mimeType: "application/pdf" as const,
+        size: file.size,
+        blob: file,
+        createdAt: now,
+        updatedAt: now,
+      };
+    }),
   );
 
   return pdfFiles.length;
+}
+
+function getUniqueFileName(baseName: string, usedNames: Set<string>) {
+  const normalizedBaseName = baseName.trim() || "Untitled PDF";
+  let nextName = normalizedBaseName;
+  let suffix = 1;
+
+  while (usedNames.has(nextName.toLocaleLowerCase())) {
+    nextName = `${normalizedBaseName} (${suffix})`;
+    suffix += 1;
+  }
+
+  return nextName;
 }
 
 export async function moveFileToFolder({

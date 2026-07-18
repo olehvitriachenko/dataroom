@@ -1,6 +1,6 @@
 "use client";
 
-import { type DragEvent } from "react";
+import { useMemo, useState, type DragEvent } from "react";
 import { FolderOpen } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -15,6 +15,7 @@ import {
   hasNativeFiles,
 } from "@/lib/file-drag";
 import { getDraggedFolderId, hasDraggedFolder } from "@/lib/folder-drag";
+import { Input } from "@/components/ui/input";
 import { FileCard } from "./file-card";
 import { FolderCard } from "./folder-card";
 import type { Folder } from "@/types/entities";
@@ -27,6 +28,7 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentFolderId = searchParams.get("folderId");
+  const [searchQuery, setSearchQuery] = useState("");
 
   function handleOpenFolder(folder: Folder) {
     router.push(`/datarooms/${dataRoomId}?folderId=${folder.id}`);
@@ -167,6 +169,28 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
         .sortBy("name"),
     [dataRoomId, currentFolderId],
   );
+  const filteredFolders = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+
+    if (!folders || !normalizedQuery) {
+      return folders;
+    }
+
+    return folders.filter((folder) =>
+      folder.name.toLocaleLowerCase().includes(normalizedQuery),
+    );
+  }, [folders, searchQuery]);
+  const filteredFiles = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+
+    if (!files || !normalizedQuery) {
+      return files;
+    }
+
+    return files.filter((file) =>
+      file.name.toLocaleLowerCase().includes(normalizedQuery),
+    );
+  }, [files, searchQuery]);
 
   if (folders === undefined || files === undefined) {
     return (
@@ -195,22 +219,41 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {folders.map((folder) => (
-            <FolderCard
-              key={folder.id}
-              folder={folder}
-              onOpen={handleOpenFolder}
-              onMoveToFolder={handleMoveFolderToFolder}
-              onMoveFileToFolder={handleMoveFileToFolder}
-              onUploadFilesToFolder={(files, targetFolder) =>
-                void uploadFiles(files, targetFolder.id)
-              }
-            />
-          ))}
-          {files.map((file) => (
-            <FileCard key={file.id} file={file} />
-          ))}
+        <div className="grid gap-4">
+          <Input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search folders and PDFs"
+            className="max-w-sm bg-background"
+          />
+
+          {filteredFolders?.length === 0 && filteredFiles?.length === 0 ? (
+            <div className="rounded-xl border border-dashed bg-background p-8 text-center">
+              <h3 className="text-lg font-semibold">No items found</h3>
+
+              <p className="mt-2 text-sm text-muted-foreground">
+                Try a different search term.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredFolders?.map((folder) => (
+                <FolderCard
+                  key={folder.id}
+                  folder={folder}
+                  onOpen={handleOpenFolder}
+                  onMoveToFolder={handleMoveFolderToFolder}
+                  onMoveFileToFolder={handleMoveFileToFolder}
+                  onUploadFilesToFolder={(files, targetFolder) =>
+                    void uploadFiles(files, targetFolder.id)
+                  }
+                />
+              ))}
+              {filteredFiles?.map((file) => (
+                <FileCard key={file.id} file={file} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>

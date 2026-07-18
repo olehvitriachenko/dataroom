@@ -26,6 +26,7 @@ Useful checks:
 
 ```bash
 pnpm lint
+pnpm test
 pnpm build
 ```
 
@@ -42,6 +43,7 @@ pnpm build
 - Drag folders between folders and data rooms.
 - Drag PDFs between folders and data rooms.
 - Drag external PDFs into the current folder or onto a target folder/data room.
+- Search data rooms, folders, and PDFs by name.
 
 ## Design Decisions
 
@@ -58,10 +60,12 @@ PDF preview uses `react-pdf` in a client-only dynamic component because `pdf.js`
 - Empty folder and empty data room states are handled.
 - Non-PDF uploads are rejected with a toast.
 - Duplicate folder names are blocked within the same parent.
+- Duplicate PDF uploads are automatically renamed with numeric suffixes.
+- Duplicate PDF names are blocked on rename within the same folder.
 - Moving a folder into itself or its descendant is blocked.
 - No-op drag/drop moves do not show success messages.
 - File and folder drag payloads use separate custom MIME types to avoid cross-handling bugs.
 
 ## Notes
 
-This is a frontend-only MVP. A production version would move file storage to blob storage, add auth, server-side authorization checks, and search/indexing.
+This is a frontend-only MVP. A production version would move file storage to blob storage and add authentication plus server-side authorization checks. Auth is intentionally out of scope here because all data is local to the browser.

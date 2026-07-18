@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { FolderOpen } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { toast } from "sonner";
@@ -11,15 +12,28 @@ import {
   uploadPdfFiles,
 } from "@/db/file-actions";
 import { moveFolderToParent } from "@/db/folder-actions";
+import { Input } from "@/components/ui/input";
 import type { DataRoom } from "@/types/entities";
 import CardDataRoom from "./dataroom-card";
 // import { CreateDataRoomDialog } from "@/components/dataroom/create-dataroom-dialog";
 
 export function DataRoomList() {
+  const [searchQuery, setSearchQuery] = useState("");
   const dataRooms = useLiveQuery(
     () => db.dataRooms.orderBy("createdAt").reverse().toArray(),
     [],
   );
+  const filteredDataRooms = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+
+    if (!dataRooms || !normalizedQuery) {
+      return dataRooms;
+    }
+
+    return dataRooms.filter((room) =>
+      room.name.toLocaleLowerCase().includes(normalizedQuery),
+    );
+  }, [dataRooms, searchQuery]);
 
   async function handleMoveFolderToRoom(folderId: string, room: DataRoom) {
     try {
@@ -112,16 +126,35 @@ export function DataRoomList() {
     );
   }
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {dataRooms.map((room) => (
-        <CardDataRoom
-          key={room.id}
-          room={room}
-          onMoveFolderToRoom={handleMoveFolderToRoom}
-          onMoveFileToRoom={handleMoveFileToRoom}
-          onUploadFilesToRoom={handleUploadFilesToRoom}
-        />
-      ))}
-    </div>
+    <section className="grid gap-4">
+      <Input
+        value={searchQuery}
+        onChange={(event) => setSearchQuery(event.target.value)}
+        placeholder="Search data rooms"
+        className="max-w-sm bg-background"
+      />
+
+      {filteredDataRooms?.length === 0 ? (
+        <div className="rounded-xl border border-dashed bg-background p-8 text-center">
+          <h2 className="text-lg font-semibold">No data rooms found</h2>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try a different search term.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredDataRooms?.map((room) => (
+            <CardDataRoom
+              key={room.id}
+              room={room}
+              onMoveFolderToRoom={handleMoveFolderToRoom}
+              onMoveFileToRoom={handleMoveFileToRoom}
+              onUploadFilesToRoom={handleUploadFilesToRoom}
+            />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

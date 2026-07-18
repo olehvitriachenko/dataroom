@@ -58,6 +58,23 @@ export function RenameFileDialog({
     setIsSubmitting(true);
 
     try {
+      const siblingFiles = await db.files
+        .where("dataRoomId")
+        .equals(file.dataRoomId)
+        .filter((siblingFile) => siblingFile.folderId === file.folderId)
+        .toArray();
+      const alreadyExists = siblingFiles.some(
+        (siblingFile) =>
+          siblingFile.id !== file.id &&
+          siblingFile.name.toLocaleLowerCase() ===
+            normalizedName.toLocaleLowerCase(),
+      );
+
+      if (alreadyExists) {
+        toast.error("A PDF with this name already exists.");
+        return;
+      }
+
       await db.files.update(file.id, {
         name: normalizedName,
         updatedAt: new Date(),
