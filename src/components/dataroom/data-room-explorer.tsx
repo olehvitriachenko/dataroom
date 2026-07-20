@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type DragEvent } from "react";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLiveQuery } from "dexie-react-hooks";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import {
   hasNativeFiles,
 } from "@/lib/file-drag";
 import { getDraggedFolderId, hasDraggedFolder } from "@/lib/folder-drag";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileCard } from "./file-card";
 import { FolderCard } from "./folder-card";
@@ -220,12 +221,27 @@ export function DataRoomExplorer({ dataRoomId }: DataRoomExplorerProps) {
         </div>
       ) : (
         <div className="grid gap-4">
-          <Input
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search folders and PDFs"
-            className="max-w-sm bg-background"
-          />
+          <div className="relative max-w-sm">
+            <Input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search folders and PDFs"
+              className="bg-background pr-9"
+            />
+
+            {searchQuery ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Clear search"
+                className="absolute top-1/2 right-1 -translate-y-1/2"
+                onClick={() => setSearchQuery("")}
+              >
+                <X />
+              </Button>
+            ) : null}
+          </div>
 
           {filteredFolders?.length === 0 && filteredFiles?.length === 0 ? (
             <div className="rounded-xl border border-dashed bg-background p-8 text-center">

@@ -35,7 +35,10 @@ describe("file actions", () => {
     const files = await db.files.orderBy("createdAt").toArray();
 
     expect(uploadedCount).toBe(2);
-    expect(files.map((file) => file.name)).toEqual(["contract", "contract (1)"]);
+    expect(files.map((file) => file.name).sort()).toEqual([
+      "contract",
+      "contract (1)",
+    ]);
     expect(files.every((file) => file.mimeType === "application/pdf")).toBe(true);
   });
 

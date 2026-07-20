@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { Download } from "lucide-react";
 
 import type { DataRoomFile } from "@/types/entities";
 
@@ -13,6 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { formatFileDate, formatFileSize } from "@/lib/file-format";
 
 const PdfPreviewDocument = dynamic(
   () =>
@@ -43,6 +46,18 @@ export function PdfPreviewDialog({
   const previewRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(0);
   const [pageWidth, setPageWidth] = useState<number | null>(null);
+
+  function handleDownload() {
+    const objectUrl = URL.createObjectURL(file.blob);
+    const link = document.createElement("a");
+
+    link.href = objectUrl;
+    link.download = file.originalName || `${file.name}.pdf`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
+  }
 
   const updatePageWidth = useCallback(() => {
     if (!previewRef.current) {
@@ -96,16 +111,27 @@ export function PdfPreviewDialog({
           </DialogTitle>
 
           <DialogDescription className="text-xs sm:text-sm">
-            PDF preview
+            {file.originalName} · {formatFileSize(file.size)} · Uploaded{" "}
+            {formatFileDate(file.createdAt)}
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="border-b bg-popover px-4 py-2 sm:rounded-b-xl sm:border-b-0 sm:border-t">
-          <p className="text-center text-xs text-muted-foreground sm:text-sm">
+        <DialogFooter className="flex-row items-center justify-between border-b bg-popover px-4 py-2 sm:rounded-b-xl sm:border-b-0 sm:border-t">
+          <p className="text-xs text-muted-foreground sm:text-sm">
             {pageCount > 0
               ? `${pageCount} ${pageCount === 1 ? "page" : "pages"}`
               : " "}
           </p>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+          >
+            <Download data-icon="inline-start" />
+            Download
+          </Button>
         </DialogFooter>
 
         <div

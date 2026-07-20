@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, X } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ import {
   uploadPdfFiles,
 } from "@/db/file-actions";
 import { moveFolderToParent } from "@/db/folder-actions";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { DataRoom } from "@/types/entities";
 import CardDataRoom from "./dataroom-card";
@@ -127,12 +128,27 @@ export function DataRoomList() {
   }
   return (
     <section className="grid gap-4">
-      <Input
-        value={searchQuery}
-        onChange={(event) => setSearchQuery(event.target.value)}
-        placeholder="Search data rooms"
-        className="max-w-sm bg-background"
-      />
+      <div className="relative max-w-sm">
+        <Input
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search data rooms"
+          className="bg-background pr-9"
+        />
+
+        {searchQuery ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            aria-label="Clear search"
+            className="absolute top-1/2 right-1 -translate-y-1/2"
+            onClick={() => setSearchQuery("")}
+          >
+            <X />
+          </Button>
+        ) : null}
+      </div>
 
       {filteredDataRooms?.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-background p-8 text-center">

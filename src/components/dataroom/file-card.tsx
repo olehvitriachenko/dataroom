@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { setDraggedFileId } from "@/lib/file-drag";
+import { formatFileDate, formatFileSize } from "@/lib/file-format";
 import { DeleteFileDialog } from "./delete-file-dialog";
 import {
   FileContextMenuContent,
@@ -27,14 +28,6 @@ import { RenameFileDialog } from "./rename-file-dialog";
 
 interface FileCardProps {
   file: DataRoomFile;
-}
-
-function formatFileSize(size: number) {
-  if (size < 1024 * 1024) {
-    return `${Math.max(1, Math.round(size / 1024))} KB`;
-  }
-
-  return `${(size / 1024 / 1024).toFixed(1)} MB`;
 }
 
 export function FileCard({ file }: FileCardProps) {
@@ -82,6 +75,10 @@ export function FileCard({ file }: FileCardProps) {
 
             <p className="mt-1 text-xs text-muted-foreground">
               PDF · {formatFileSize(file.size)}
+            </p>
+
+            <p className="mt-1 truncate text-xs text-muted-foreground">
+              Uploaded {formatFileDate(file.createdAt)}
             </p>
           </div>
 

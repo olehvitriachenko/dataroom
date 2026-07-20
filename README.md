@@ -22,6 +22,12 @@ pnpm dev
 
 Open `http://localhost:3000`.
 
+## Deployment
+
+Hosted URL: add the deployed URL here.
+
+Because this MVP stores data in browser IndexedDB, uploaded PDFs and created rooms are local to the browser/device that created them. Refreshes keep the data, but other users or browsers will not see the same files.
+
 Useful checks:
 
 ```bash
